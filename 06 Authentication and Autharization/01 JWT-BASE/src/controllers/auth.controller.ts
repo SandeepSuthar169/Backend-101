@@ -1,6 +1,6 @@
 import express, { type Request, type Response } from "express";
 import bcrypt from "bcryptjs";
-// @ts-ignore jsonwebtoken does not have declarations installed
+// @ts-ignore 
 import jwt from "jsonwebtoken";
 import { env } from "../config/env";
 import { AppError } from "../utils/error.utils";
@@ -13,11 +13,11 @@ export const  register =  asyncHandler(async(req: Request, res: Response) => {
 
         if(!name || !email || !password) throw new AppError("user informain is required!", 400)
 
-        if(password < 6) throw new AppError("Password must be at least 6 characters", 400)
+        if (password.length < 6) throw new AppError("Password must be at least 6 characters", 400)
 
         const normalizeEmail = String(email).trim().toLowerCase()
 
-        const existingUser = pool.query(
+        const existingUser = pool.query(    
             `SELECT id
             FROM users
             WHERE email = $1
@@ -57,3 +57,62 @@ export const  register =  asyncHandler(async(req: Request, res: Response) => {
         throw new AppError(`Internal server error `, 500)
     }
 })
+
+
+export const login = async (req: Request, res: Response) => {
+    try {
+        const { email, password } = req.body
+
+        if(!email || email.trim().length === 0) throw new AppError("Email required", 400)
+
+        if(!password || password.trim().length === 0 || password.length < 6) throw new AppError("Password required", 400)
+
+        const normalizeEmail = String(email).trim().toLowerCase()
+
+        const result = await pool.query(
+            `SELECT
+                id,
+                name,
+                email,
+                password_hash,
+                role
+            FROM users
+            WHERE email = $1
+            `, [normalizeEmail]
+        )
+
+        const user = result.rows[0]
+
+        if(!user) throw new AppError("Invalid email and password", 401)
+
+        const passwordMatch = await bcrypt.compare(password, user.password_hash)
+
+        if(!passwordMatch) throw new AppError("Invalid email and password", 401)
+        
+        const token = jwt.sign(
+            {
+                sub: user.id,
+                role: user.role
+            },
+            env.jwt.scret,
+            {
+                expiresIn: env.jwt.expireIn
+            } as jwt.SignOptions
+        )
+
+        return res.status(200).json({
+            message: "Login Successfully",
+            accessToken: token,
+            user: {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                role: user.role
+            }
+        })
+
+    } catch (error) {
+        console.error(error);
+        throw new AppError("Internal server error", 500);
+    }
+}

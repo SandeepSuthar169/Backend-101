@@ -35,3 +35,14 @@ services:
 
 volumes:
   postgres_data:
+
+
+
+
+      # DB_NAME: auth_db
+      # DB_USER: postgres
+      # DB_PASSWORD: postgres
+
+    #       image: postgres:18
+    # container_name: auth-postgres
+    # restart: unless-stopped
