@@ -9,9 +9,10 @@ interface JwtPayload {
 
 export function requireAuth(req: Request, res: Response, next: NextFunction) {
   try {
+
     const authHeader = req.headers.authorization;
-    console.log("req.headers", req.headers);
-    console.log("req.headers.auth", req.headers.authorization);
+    console.log("req.headers.authorization", req.headers.authorization);
+    
 
     if (!authHeader) {
       return res.status(401).json({
@@ -19,7 +20,7 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
       });
     }
 
-    const [scheme, token] = authHeader.split(" ");
+    const [scheme, token] = authHeader.trim().split(/\s+/, 2);
 
     console.log("scheme:", scheme);
     console.log("token:", token);
@@ -38,6 +39,7 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
     };
 
     next();
+
   } catch {
     return res.status(401).json({
       message: "Invalid or expired token",

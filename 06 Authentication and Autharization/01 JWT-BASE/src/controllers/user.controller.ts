@@ -15,14 +15,13 @@ export const getMe = async (req: Request, res: Response) => {
     // find user info by user id
     const result = await pool.query(
       `SELECT
-                id,
-                name,
-                email,
-                role,
-                created_at
-            FROM users
-            WHERE id = $1
-            `,
+        id,
+        name,
+        email,
+        role,
+        created_at
+      FROM users
+      WHERE id = $1`,
       [req.user.id],
     );
     // write user        const user = result.rows[0];
@@ -45,3 +44,34 @@ export const getMe = async (req: Request, res: Response) => {
     throw new AppError("Internal server error", 500);
   }
 };
+
+
+export async function getUsers(
+  _req: Request,
+  res: Response
+) {
+  try {
+    const result = await pool.query(
+      `
+      SELECT
+        id,
+        name,
+        email,
+        role,
+        created_at
+      FROM users
+      ORDER BY created_at DESC
+      `
+    );
+
+    return res.json({
+      users: result.rows
+    });
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      message: "Internal server error"
+    });
+  }
+}

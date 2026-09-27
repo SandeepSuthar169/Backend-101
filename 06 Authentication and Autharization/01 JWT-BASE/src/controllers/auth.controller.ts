@@ -62,9 +62,6 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
 export const login = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
-   
-
-    
 
     if (!email || email.trim().length === 0)
       throw new AppError("Email required", 400);
@@ -106,8 +103,8 @@ export const login = async (req: Request, res: Response) => {
       } as jwt.SignOptions,
     );
 
-     console.log("req.headers",req.headers);
-    console.log("req.headers.auth", req.headers.authorization);
+    console.log("token", token);
+    
 
     return res.status(200).json({
       message: "Login Successfully",
