@@ -7,63 +7,55 @@ interface JwtPayload {
   role: "user" | "admin";
 }
 
-export function requireAuth(
-  req: Request,
-  res: Response,
-  next: NextFunction
-) {
+export function requireAuth(req: Request, res: Response, next: NextFunction) {
   try {
     const authHeader = req.headers.authorization;
+    console.log("req.headers", req.headers);
+    console.log("req.headers.auth", req.headers.authorization);
 
     if (!authHeader) {
       return res.status(401).json({
-        message: "Authorization header is required"
+        message: "Authorization header is required",
       });
     }
 
     const [scheme, token] = authHeader.split(" ");
 
+    console.log("scheme:", scheme);
+    console.log("token:", token);
+
     if (scheme !== "Bearer" || !token) {
       return res.status(401).json({
-        message: "Invalid authorization format"
+        message: "Invalid authorization format",
       });
     }
 
-    const decoded = jwt.verify(
-      token,
-      env.jwt.scret
-    ) as JwtPayload;
+    const decoded = jwt.verify(token, env.jwt.secret) as JwtPayload;
 
     req.user = {
       id: decoded.sub,
-      role: decoded.role
+      role: decoded.role,
     };
 
     next();
   } catch {
     return res.status(401).json({
-      message: "Invalid or expired token"
+      message: "Invalid or expired token",
     });
   }
 }
 
-export function requireRole(
-  role: "user" | "admin"
-) {
-  return (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
+export function requireRole(role: "user" | "admin") {
+  return (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) {
       return res.status(401).json({
-        message: "Authentication required"
+        message: "Authentication required",
       });
     }
 
     if (req.user.role !== role) {
       return res.status(403).json({
-        message: "Forbidden"
+        message: "Forbidden",
       });
     }
 

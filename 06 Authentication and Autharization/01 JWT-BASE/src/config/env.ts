@@ -23,7 +23,7 @@ export const env = {
   },
 
   jwt: {
-    scret: getENV("JWT_SECRET"),
+    secret: getENV("JWT_SECRET"),
     expireIn: getENV("JWT_EXPIRES_IN"),
   },
 };
