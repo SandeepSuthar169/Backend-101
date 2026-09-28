@@ -1,9 +1,19 @@
-import type {Request, Response} from "express";
+import type {NextFunction, Request, Response} from "express";
 import bcrypt from "bcryptjs";
 import { pool } from "../db/pool"
 import { AppError } from "../utils/error.utils";
 
-export const register = async(req: Request, res: Response) => {
+interface User {
+    id: number;
+    name: string
+    email: String;
+    password_hash: string;
+    role: "user" | "admin";
+    created_at: Date;
+    updated_at: Date;
+}
+
+export const register = async(req: Request, res: Response): Promise<void> => {
     try {
         const { name, email, password } = req.body
 
@@ -13,17 +23,94 @@ export const register = async(req: Request, res: Response) => {
 
         const normalizeEmail = String(email).trim().toLowerCase()
 
-        const existingUser = await pool.query(
+        const existingUser = await pool.query<User>(
             `
-            SELECT id
+            SELECT *
             FROM users
             WHERE email = $1
             `, [normalizeEmail]
         )
 
+        if(existingUser.rows.length > 0) throw new AppError("Email is already registerd!", 409)
+        
+        const passwordHash = await bcrypt.hash(password, 12);
+
+        const result = await pool.query<User>(
+            `INSERT INTO users (name, email, password_hash, role)
+            VALUE ($1, $2, $3, $4)
+            RETURNING 
+                id,
+                name,
+                email,
+                role,
+                created_at,
+                updated_at
+            `, [name.trim(), normalizeEmail, passwordHash, "user"]
+        )
+
+        const user = result.rows[0]
+
+
+        res.status(201).json({
+            success: true,
+            message: "User registerd successfully",
+            data: {
+                user
+            }
+        })
         
     } catch (error) {
         console.error(error);
         throw new AppError("Internal server error", 500)        
     }
-} 
+}
+
+export const login = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { email, password } = req.body
+
+        if(!email || email.trim().length === 0 ) throw new AppError("Email is required!", 400)
+
+        if(!password || password.trim().length === 0) throw new AppError("Password is required!", 400)
+
+        if(password.length < 6) throw new AppError("Password al least greather than 6 charecter!", 400)
+
+        const normalizeEmail = String(email).trim().toLowerCase()
+
+        const result = await pool.query<User>(
+            `
+            SELECT *
+            FROM users
+            WHERE email = $1
+            `, [normalizeEmail]
+        )
+
+        const uesr = result.rows[0]
+
+        if(!uesr) throw new AppError("Invalid email or password!", 400)
+
+        const passwordMatch = await bcrypt.compare(password, uesr.password_hash)
+
+        if(!passwordMatch) throw new AppError("Invalid email or Password!", 401)
+
+        req.session.userId = uesr.id;
+        req.session.userRole = uesr.role;
+
+        res.status(200).json({
+            success: true,
+            message: "Login successfully",
+            data: {
+                uesr: {
+                    name: uesr.name,
+                    email: uesr.email,
+                    role: uesr.role
+                }
+            }
+        })
+
+
+    } catch (error) {
+        console.error(error);
+        throw new AppError("Internal server error", 500)        
+    }
+}

@@ -1,23 +1,50 @@
-import type {  Request, Response, NextFunction } from "express"
-import { AppError } from "../utils/error.utils"
+import type { Request, Response, NextFunction } from "express";
 
-export const requireAuth = (req: Request, res: Response, next: NextFunction) => {
-    if(!req.session.userId){
-        throw new AppError("Authentication required", 401)
+export const requireAuth = ( req: Request, res: Response, next: NextFunction ): void => {
+    
+  if (!req.session.userId) {
+    res.status(401).json({
+      success: false,
+      message: "Authentication required",
+    });
+
+    return;
+  }
+
+  next();
+};
+
+export const requireRole = (...roles: Array<"user" | "admin">) => {
+
+  return (req: Request, res: Response, next: NextFunction): void => {
+    
+    if (!req.session.userId) {
+      res.status(401).json({
+        success: false,
+        message: "Authentication required",
+      });
+
+      return;
     }
-    next()
-}
 
-export const requireRole = (role: "user" | "admin") => {
-    return ( 
-        req: Request, 
-        res: Response,
-        next: NextFunction
-    ) => {
-        if(!req.session.userId) throw new AppError("Authentication Required", 401)
+    if (!req.session.userRole) {
+      res.status(403).json({
+        success: false,
+        message: "User role not found",
+      });
 
-        if(req.session.role !== role) throw new AppError("Forbidden", 403)
-
-        next()
+      return;
     }
-}
+
+    if (!roles.includes(req.session.userRole)) {
+      res.status(403).json({
+        success: false,
+        message: "You do not have permission to access this resource",
+      });
+
+      return;
+    }
+
+    next();
+  };
+};
