@@ -1,59 +1,26 @@
 services:
-
   postgres:
-    image: postgres:17-alpine
-
-    container_name: session-auth-postgres
-
+    image: postgres:17
+    container_name: auth-postgres
     restart: unless-stopped
 
     environment:
+      POSTGRES_DB: auth_db
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: session_auth_db
 
     ports:
       - "5432:5432"
 
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./docker/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./src/db/migrations:/docker-entrypoint-initdb.d
 
     healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "pg_isready -U postgres -d session_auth_db"
-        ]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d auth_db"]
       interval: 5s
       timeout: 5s
       retries: 10
 
-
-  api:
-    build: .
-
-    container_name: session-auth-api
-
-    restart: unless-stopped
-
-    depends_on:
-      postgres:
-        condition: service_healthy
-
-    environment:
-      NODE_ENV: production
-
-      PORT: 5000
-
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/session_auth_db
-
-      SESSION_SECRET: change-this-in-production
-
-      SESSION_MAX_AGE: 86400000
-
-    ports:
-      - "5000:5000"
-    
 volumes:
   postgres_data:
