@@ -100,10 +100,10 @@ export const login = async (req: Request, res: Response) => {
       env.jwt.secret,
       {
         expiresIn: env.jwt.expireIn,
-      } as jwt.SignOptions,
+      } as jwt.SignOptions, 
     );
 
-    console.log("token", token);
+    // console.log("token", token);
     
 
     return res.status(200).json({
