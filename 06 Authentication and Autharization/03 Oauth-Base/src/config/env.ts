@@ -1,30 +1,21 @@
-import dotenv from "dotenv";
-import { AppError } from "../utils/error";
-
-dotenv.config();
+import "dotenv/config";
+import process from "node:process";
 
 const required = (name: string): string => {
   const value = process.env[name];
 
-  if (!value) throw new Error(`Missing environment variable: ${name}`);
+  if (!value) throw new Error(`Missing required env, ${name}`);
 
   return value;
 };
 
 export const env = {
-  PORT: Number(process.env.PORT || 5000),
-
-  DATABASE_URL: required("DATABASE_URL"),
-  
-  JWT_ACCESS_SECRET: required("JWT_ACCESS_SECRET"),
-
-  JWT_REFRESH_SECRET: required("JWT_REFRESH_SECRET"),
-
-  ACCESS_TOKEN_EXPIRES_IN: process.env.ACCESS_TOKEN_EXPIRES_IN || "15m",
-
-  REFRESH_TOKEN_EXPIRES_IN: process.env.REFRESH_TOKEN_EXPIRES_IN || "7d",
-
-  CLIENT_URL: process.env.CLIENT_URL || "http://localhost:3000",
-
-  NODE_ENV: process.env.NODE_ENV || "development",
+  port: Number(process.env.PORT ?? 4000),
+  isProd: process.env.NODE_ENV === "production",
+  databaseUrl: required("DATABASE_URL"),
+  googleClientId: required("GOOGLE_CLIENT_ID"),
+  googleClientSecret: required("GOOGLE_CLIENT_SECRET"),
+  googleCallbackUrl: required("GOOGLE_CALLBACK_URL"),
+  sessionSecret: required("SESSION_SECRET"),
+  clientUrl: required("CLIENT_URL"),
 };
