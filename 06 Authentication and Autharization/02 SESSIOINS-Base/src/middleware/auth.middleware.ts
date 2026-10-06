@@ -1,7 +1,10 @@
 import type { Request, Response, NextFunction } from "express";
 
-export const requireAuth = ( req: Request, res: Response, next: NextFunction ): void => {
-    
+export const requireAuth = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): void => {
   if (!req.session.userId) {
     res.status(401).json({
       success: false,
@@ -15,9 +18,7 @@ export const requireAuth = ( req: Request, res: Response, next: NextFunction ): 
 };
 
 export const requireRole = (...roles: Array<"user" | "admin">) => {
-
   return (req: Request, res: Response, next: NextFunction): void => {
-    
     if (!req.session.userId) {
       res.status(401).json({
         success: false,

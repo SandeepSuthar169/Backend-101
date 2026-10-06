@@ -1,0 +1,26 @@
+services:
+  db:
+    image: postgres:18
+    container_name: expriment-postgresql18
+    restart: always
+
+    environment:
+      POSTGRES_USER: sandeep-postgresql1
+      POSTGRES_PASSWORD: sandeep-pass-postgresql1
+      POSTGRES_DB: sandeep-db1
+
+    ports:
+      - "5433:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql
+
+  adminer:
+    image: adminer
+    restart: always
+
+    ports:
+      - "8080:8080"
+
+volumes:  
+  postgres_data:
