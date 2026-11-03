@@ -3,13 +3,21 @@
   "module": "index.ts",
   "type": "module",
   "private": true,
-  "scripts": {
-    "typecheck": "bun check"
-  },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "@types/compression": "^1.8.1"
+  },
+  "scripts": {
+    "dev": "bun src/app.ts"
   },
   "peerDependencies": {
     "typescript": "^7"
+  },
+  "dependencies": {
+    "@types/express": "^5.0.6",
+    "compression": "^1.8.2",
+    "express": "^5.3.0",
+    "helmet": "^8.3.0",
+    "pg": "^8.23.1"
   }
 }
