@@ -11,6 +11,6 @@ const router = Router()
 router.get("/", getProducts);
 router.get("/search", search);
 router.post("/", createProduct)
-router.post("/reindex", reindexProducts)
+    router.post("/reindex", reindexProducts)
 
 export default router;

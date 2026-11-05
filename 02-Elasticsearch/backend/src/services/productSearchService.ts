@@ -1,38 +1,39 @@
 import {
-    PRODUCT_INDEX,
-    esClient,
-    initializeSearchIndex
-} from "../config/elasticsearch"
+  esClient,
+  PRODUCT_INDEX
+} from "../config/elasticsearch.js";
 
-interface Product {
-    id: number;
-    name: string;
-    category: string;
-    description: string;
-}
+export async function searchProducts(searchText: string) {
 
-export async function searchProducts(seatchText:string) {
-    const result = await esClient.search<Product>({
-        index: PRODUCT_INDEX,
-        
-        query: {                    // query: Search text entered by the user.
-            multi_match: {          // multi_match: Searches multiple fields.
-                query: seatchText,
+  const result = await esClient.search({
 
-                fields: [
-                    "name^3",            // name^3: Gives the product name higher relevance.
-                    "category^2",        // category^2: Gives the category the next priority.
-                    "description"        // description: Also searches product descriptions.
-                ],
-                fuzziness: "AUTO"       // fuzziness: Helps match minor spelling mistakes.
-            }
-        },
-        sort: [
-            { _score: { order: "desc" }},
-            { id: { order: "desc" }}
+    index: PRODUCT_INDEX,
+
+    query: {
+
+      multi_match: {
+
+        query: searchText,
+
+        fields: [
+          "name^3",
+          "category^2",
+          "description"
         ],
-        size: 50
-    })
+
+        fuzziness: "AUTO"
+      }
+
+    },
+
+    sort: [
+      { _score: { order: "desc" } },
+      { id: { order: "desc" } }
+    ],
+
+    size: 50
+
+  })
 
     return result.hits.hits.map((hit) => ({
         ...hit._source ?? {},                      // - hits: Contains matching product documents.

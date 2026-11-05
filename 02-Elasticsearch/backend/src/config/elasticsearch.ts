@@ -1,10 +1,12 @@
-import { Client } from "@elastic/elasticsearch";  
 import dotenv from "dotenv";
+import { Client } from "@elastic/elasticsearch";  
+import { HttpConnection } from "@elastic/transport";
 
 dotenv.config();
 
 export const esClient = new Client({
     node: process.env.ELASTICSEARCH_NODE || "http://localhost:9200",
+    Connection: HttpConnection,
 })
 
 export const PRODUCT_INDEX = process.env.ELASTICSEARCH_INDEX || "products"
