@@ -4,7 +4,7 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "typecheck": "bun check"
+    "dev" : "bun src/app.ts"
   },
   "devDependencies": {
     "@types/bun": "latest"
@@ -14,8 +14,10 @@
   },
   "dependencies": {
     "@elastic/elasticsearch": "^9.5.1",
+    "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/pg": "^8.23.1",
+    "cors": "^2.8.6",
     "dotenv": "^18.0.9",
     "express": "^5.3.0",
     "pg": "^8.23.1"

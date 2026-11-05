@@ -1,4 +1,4 @@
-import { pool } from "../config/db";
+import  pool  from "../config/db";
 import { searchProducts } from "../services/productSearchService"
 import { indexProduct } from "../services/productIndexService"
 import type { Request, Response, NextFunction } from "express";
@@ -80,15 +80,62 @@ export const createProduct = async (req: Request, res: Response, next: NextFunct
         // Index product in elasticsearch 
 
         let indexed = true;
+        const product = result.rows[0]
 
         try {
-            await indexProduct(result.rows[0])
-        } catch (indexError) {
+            await indexProduct(product)
+        } catch (error) {
             indexed = false
-            console.log(indexError.message);
-            
+            console.log(error);
         }
+
+        res.status(201).json({
+            message: indexed 
+            ? "Product created and inexed for search" 
+            : "Product saved, but search indexing failed!",
+
+            indexed,
+
+            product
+        })
     } catch (error) {
         next(error)
     }
+}
+
+
+export async function reindexProducts(req: Request, res: Response, next: NextFunction) {
+  try {
+    const result = await pool.query("SELECT * FROM products ORDER BY id");
+    const operations = [];
+
+    for (const product of result.rows) {
+      operations.push(
+        { index: { _index: process.env.ELASTICSEARCH_INDEX || "products", _id: String(product.id) } },
+        {
+          id: Number(product.id),
+          name: product.name,
+          description: product.description,
+          category: product.category,
+          price: Number(product.price),
+          stock: Number(product.stock),
+          created_at: product.created_at
+        }
+      );
+    }
+
+    if (operations.length) {
+      const bulkResult = await (await import("../config/elasticsearch.js")).esClient.bulk({
+        refresh: true,
+        operations
+      });
+      if (bulkResult.errors) {
+        return res.status(500).json({ message: "Some products could not be indexed.", errors: true });
+      }
+    }
+
+    res.json({ message: "Reindex completed.", indexedCount: result.rows.length });
+  } catch (error) {
+    next(error);
+  }
 }

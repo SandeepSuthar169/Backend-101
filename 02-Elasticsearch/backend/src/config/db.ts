@@ -3,9 +3,24 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-export const pool = new Pool({
+ const pool = new Pool({
   connectionString: process.env.DATABASE_URL
 });
+
+pool.on("connect", () => {
+  console.log("PostgreSQL client connected successfully");
+});
+
+pool.on("error", (err: Error) => {
+  console.error("Unexpected PostgreSQL pool error:", err.message);
+});
+
+export const checkDatabaseConnection = async () => {
+  const result = await pool.query("SELECT NOW()");
+  return result.rows[0];
+};
+
+export default pool;
 
 export async function initializeDatabase() {
   await pool.query(`
