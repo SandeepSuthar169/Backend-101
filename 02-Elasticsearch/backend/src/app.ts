@@ -2,7 +2,8 @@ import express from "express"
 import type { Request, Response, NextFunction } from "express"
 import cors from "cors";
 import productRoute from "./routes/product.route"
-import { checkDatabaseConnection } from "./config/db";
+import { checkDatabaseConnection, initializeDatabase } from "./config/db";
+import { initializeSearchIndex } from "./config/elasticsearch";
 
 const app = express();
 const PORT = process.env.PORT || 3000
@@ -27,6 +28,8 @@ async function startServer() {
   try {
 
     await checkDatabaseConnection();
+    // await initializeSearchIndex();
+    await initializeDatabase();
 
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
